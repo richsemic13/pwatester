@@ -173,7 +173,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // RESET REGISTER FORM
     document.getElementById("registerForm").reset();
-});
+showRegisterPass.checked = false;
+registerPasswordField.type = "password";
+confirmPasswordField.type = "password";
 
     document.getElementById("showLogin").addEventListener("click", function (e) {
     e.preventDefault();
@@ -183,27 +185,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // RESET LOGIN FORM
     document.getElementById("loginForm").reset();
-});
+showLoginPass.checked = false;
+loginPasswordField.type = "password";
     
     // SHOW/HIDE LOGIN PASSWORD
-    document.getElementById("showLoginPassword").addEventListener("change", function () {
-        const loginPasswordField = document.getElementById("loginPassword");
-        loginPasswordField.type = this.checked ? "text" : "password";
-    });
+    const showLoginPass = document.getElementById("showLoginPassword");
+const loginPasswordField = document.getElementById("loginPassword");
+
+showLoginPass.addEventListener("change", function () {
+    if (showLoginPass.checked) {
+        loginPasswordField.type = "text";
+    } else {
+        loginPasswordField.type = "password";
+    }
+});
 
     // SHOW/HIDE REGISTER PASSWORDS
-    document.getElementById("showRegisterPassword").addEventListener("change", function () {
-        const passwordField = document.getElementById("registerPassword");
-        const confirmField = document.getElementById("confirmPassword");
+    const showRegisterPass = document.getElementById("showRegisterPassword");
+const registerPasswordField = document.getElementById("registerPassword");
+const confirmPasswordField = document.getElementById("confirmPassword");
 
-        if (this.checked) {
-            passwordField.type = "text";
-            confirmField.type = "text";
-        } else {
-            passwordField.type = "password";
-            confirmField.type = "password";
-        }
-    });
+showRegisterPass.addEventListener("change", function () {
+    const type = showRegisterPass.checked ? "text" : "password";
+
+    registerPasswordField.type = type;
+    confirmPasswordField.type = type;
+});
 
     // REGISTER
     document.getElementById("registerForm").addEventListener("submit", function (e) {
