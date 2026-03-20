@@ -166,17 +166,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Toggle Login/Register
     document.getElementById("showRegister").addEventListener("click", function (e) {
-        e.preventDefault();
-        loginBox.style.display = "none";
-        registerBox.style.display = "block";
-    });
+    e.preventDefault();
+
+    loginBox.style.display = "none";
+    registerBox.style.display = "block";
+
+    // RESET REGISTER FORM
+    document.getElementById("registerForm").reset();
+});
 
     document.getElementById("showLogin").addEventListener("click", function (e) {
-        e.preventDefault();
-        registerBox.style.display = "none";
-        loginBox.style.display = "block";
-    });
+    e.preventDefault();
 
+    registerBox.style.display = "none";
+    loginBox.style.display = "block";
+
+    // RESET LOGIN FORM
+    document.getElementById("loginForm").reset();
+});
+    
     // SHOW/HIDE LOGIN PASSWORD
     document.getElementById("showLoginPassword").addEventListener("change", function () {
         const loginPasswordField = document.getElementById("loginPassword");
