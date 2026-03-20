@@ -133,11 +133,8 @@ function updateChart() {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
             plugins: {
-                legend: {
-                    position: "bottom"
-                }
+                legend: { position: "bottom" }
             }
         }
     });
@@ -161,324 +158,130 @@ function resetAll() {
 // DOM READY
 // ==========================
 document.addEventListener("DOMContentLoaded", function () {
+
     const loginBox = document.getElementById("loginBox");
     const registerBox = document.getElementById("registerBox");
 
-    // Toggle Login/Register
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+
+    const showLoginPassword = document.getElementById("showLoginPassword");
+    const showRegisterPassword = document.getElementById("showRegisterPassword");
+
+    const loginPassword = document.getElementById("loginPassword");
+    const registerPassword = document.getElementById("registerPassword");
+    const confirmPassword = document.getElementById("confirmPassword");
+
+    // SWITCH TO REGISTER
     document.getElementById("showRegister").addEventListener("click", function (e) {
-    e.preventDefault();
+        e.preventDefault();
+        loginBox.style.display = "none";
+        registerBox.style.display = "block";
 
-    loginBox.style.display = "none";
-    registerBox.style.display = "block";
+        loginForm.reset();
+        showLoginPassword.checked = false;
+        loginPassword.type = "password";
+    });
 
-    // RESET REGISTER FORM
-    document.getElementById("registerForm").reset();
-        
+    // SWITCH TO LOGIN
     document.getElementById("showLogin").addEventListener("click", function (e) {
-    e.preventDefault();
+        e.preventDefault();
+        registerBox.style.display = "none";
+        loginBox.style.display = "block";
 
-    registerBox.style.display = "none";
-    loginBox.style.display = "block";
+        registerForm.reset();
+        showRegisterPassword.checked = false;
+        registerPassword.type = "password";
+        confirmPassword.type = "password";
+    });
 
-    // RESET LOGIN FORM
-    document.getElementById("loginForm").reset();
-    
-    // SHOW/HIDE LOGIN PASSWORD
-    document.getElementById("showLoginPassword").addEventListener("change", function () {
-    const loginPasswordField = document.getElementById("loginPassword");
-    loginPasswordField.type = this.checked ? "text" : "password";
-});
+    // SHOW PASSWORD LOGIN
+    showLoginPassword.addEventListener("change", function () {
+        loginPassword.type = this.checked ? "text" : "password";
+    });
 
-    // SHOW/HIDE REGISTER PASSWORDS
-    document.getElementById("showRegisterPassword").addEventListener("change", function () {
-    const passwordField = document.getElementById("registerPassword");
-    const confirmField = document.getElementById("confirmPassword");
-
-    if (this.checked) {
-        passwordField.type = "text";
-        confirmField.type = "text";
-    } else {
-        passwordField.type = "password";
-        confirmField.type = "password";
-    }
-});
+    // SHOW PASSWORD REGISTER
+    showRegisterPassword.addEventListener("change", function () {
+        let type = this.checked ? "text" : "password";
+        registerPassword.type = type;
+        confirmPassword.type = type;
+    });
 
     // REGISTER
-    document.getElementById("registerForm").addEventListener("submit", function (e) {
+    registerForm.addEventListener("submit", function (e) {
         e.preventDefault();
 
         const firstName = document.getElementById("registerFirstName").value.trim();
         const lastName = document.getElementById("registerLastName").value.trim();
         const number = document.getElementById("registerNumber").value.trim();
         const email = document.getElementById("registerEmail").value.trim().toLowerCase();
-        const password = document.getElementById("registerPassword").value.trim();
-        const confirmPassword = document.getElementById("confirmPassword").value.trim();
+        const password = registerPassword.value.trim();
+        const confirm = confirmPassword.value.trim();
 
-        if (!firstName || !lastName || !number || !email || !password || !confirmPassword) {
-            alert("Please fill in all fields.");
-            return;
-        }
-
-        if (password.length < 6) {
-            alert("Password must be at least 6 characters.");
-            return;
-        }
-
-        if (password !== confirmPassword) {
+        if (password !== confirm) {
             alert("Passwords do not match.");
             return;
         }
 
         let users = getUsers();
-        let exists = users.find(user => user.email === email);
 
-        if (exists) {
+        if (users.find(u => u.email === email)) {
             alert("Email already registered.");
             return;
         }
 
-        users.push({
-            firstName,
-            lastName,
-            number,
-            email,
-            password
-        });
-
+        users.push({ firstName, lastName, number, email, password });
         saveUsers(users);
 
-        alert("Registration successful! You can now login.");
-        this.reset();
+        alert("Registration successful!");
 
+        registerForm.reset();
         registerBox.style.display = "none";
         loginBox.style.display = "block";
     });
 
     // LOGIN
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
+    loginForm.addEventListener("submit", function (e) {
         e.preventDefault();
 
         const email = document.getElementById("loginEmail").value.trim().toLowerCase();
-        const password = document.getElementById("loginPassword").value.trim();
+        const password = loginPassword.value.trim();
 
         let users = getUsers();
-        let foundUser = users.find(user => user.email === email && user.password === password);
+        let user = users.find(u => u.email === email && u.password === password);
 
-        if (!foundUser) {
+        if (!user) {
             alert("Invalid email or password.");
             return;
         }
 
         currentUser = email;
-        localStorage.setItem("currentUser", currentUser);
+        localStorage.setItem("currentUser", email);
 
         loadBudgetData();
         showApp();
 
-        document.getElementById("displayUsername").textContent = `${foundUser.firstName} ${foundUser.lastName}`;
+        document.getElementById("displayUsername").textContent =
+            `${user.firstName} ${user.lastName}`;
 
         updateUI();
-        this.reset();
+        loginForm.reset();
     });
 
     // LOGOUT
-    document.getElementById("logoutBtn").addEventListener("click", function () {
-        logoutUser();
-    });
-
-    // Add Budget
-    document.getElementById("budgetForm").addEventListener("submit", function (e) {
-        e.preventDefault();
-
-        let val = parseFloat(document.getElementById("budget").value);
-
-        if (isNaN(val) || val <= 0) {
-            alert("Invalid budget");
-            return;
-        }
-
-        budgetData.totalBudget += val;
-        budgetData.budgetLeft += val;
-
-        updateLocalStorage();
-        updateUI();
-        this.reset();
-    });
-
-    // Add Expense
-    document.getElementById("expenseForm").addEventListener("submit", function (e) {
-        e.preventDefault();
-
-        let title = document.getElementById("expense").value.trim();
-        let amount = parseFloat(document.getElementById("amount").value);
-        let category = document.getElementById("category").value;
-
-        if (!title || isNaN(amount) || amount <= 0) {
-            alert("Invalid expense");
-            return;
-        }
-
-        if (amount > budgetData.budgetLeft) {
-            alert("Not enough budget");
-            return;
-        }
-
-        budgetData.expenses.push({
-            id: Date.now(),
-            title,
-            amount,
-            category,
-            date: new Date().toLocaleDateString()
-        });
-
-        budgetData.totalExpenses += amount;
-        budgetData.budgetLeft -= amount;
-
-        updateLocalStorage();
-        updateUI();
-        this.reset();
-    });
-
-    // Table Actions (Edit / Delete / Save / Cancel)
-    document.getElementById("expenseTableBody").addEventListener("click", function (e) {
-        let row = e.target.closest("tr");
-        if (!row) return;
-
-        let id = row.getAttribute("data-id");
-        let exp = budgetData.expenses.find(x => x.id == id);
-        if (!exp) return;
-
-        // DELETE
-        if (e.target.classList.contains("delete-btn")) {
-            if (!confirm("Delete this expense?")) return;
-
-            budgetData.totalExpenses -= exp.amount;
-            budgetData.budgetLeft += exp.amount;
-            budgetData.expenses = budgetData.expenses.filter(x => x.id != id);
-
-            updateLocalStorage();
-            updateUI();
-            return;
-        }
-
-        // EDIT
-        if (e.target.classList.contains("edit-btn")) {
-            let actionCell = row.querySelector(".action-cell");
-
-            row.dataset.originalTitle = exp.title;
-            row.dataset.originalAmount = exp.amount;
-            row.dataset.originalCategory = exp.category;
-
-            let tCell = row.querySelector(".title-cell");
-            let aCell = row.querySelector(".amount-cell");
-            let cCell = row.querySelector(".category-cell");
-
-            let tInput = document.createElement("input");
-            tInput.type = "text";
-            tInput.className = "form-control form-control-sm";
-            tInput.value = exp.title;
-
-            let aInput = document.createElement("input");
-            aInput.type = "number";
-            aInput.className = "form-control form-control-sm";
-            aInput.min = 0;
-            aInput.step = 0.01;
-            aInput.value = exp.amount;
-
-            let cSelect = document.createElement("select");
-            cSelect.className = "form-control form-control-sm";
-            ["Food", "Bills", "Transport", "Entertainment", "Others"].forEach(cat => {
-                let opt = document.createElement("option");
-                opt.value = cat;
-                opt.textContent = cat;
-                if (cat === exp.category) opt.selected = true;
-                cSelect.appendChild(opt);
-            });
-
-            tCell.innerHTML = "";
-            aCell.innerHTML = "";
-            cCell.innerHTML = "";
-
-            tCell.appendChild(tInput);
-            aCell.appendChild(aInput);
-            cCell.appendChild(cSelect);
-
-            actionCell.innerHTML = `
-                <button class="btn btn-success btn-sm save-btn mb-1">Save</button>
-                <button class="btn btn-secondary btn-sm cancel-btn mb-1">Cancel</button>
-            `;
-        }
-
-        // SAVE
-        if (e.target.classList.contains("save-btn")) {
-            let tInput = row.querySelector(".title-cell input");
-            let aInput = row.querySelector(".amount-cell input");
-            let cSelect = row.querySelector(".category-cell select");
-
-            let newTitle = tInput.value.trim();
-            let newAmount = parseFloat(aInput.value);
-            let newCategory = cSelect.value;
-
-            if (!newTitle || isNaN(newAmount) || newAmount <= 0) {
-                alert("Invalid input");
-                return;
-            }
-
-            let diff = newAmount - exp.amount;
-
-            if (diff > budgetData.budgetLeft) {
-                alert("Not enough budget");
-                return;
-            }
-
-            exp.title = newTitle;
-            exp.amount = newAmount;
-            exp.category = newCategory;
-
-            budgetData.totalExpenses += diff;
-            budgetData.budgetLeft -= diff;
-
-            updateLocalStorage();
-            updateUI();
-        }
-
-        // CANCEL
-        if (e.target.classList.contains("cancel-btn")) {
-            exp.title = row.dataset.originalTitle;
-            exp.amount = parseFloat(row.dataset.originalAmount);
-            exp.category = row.dataset.originalCategory;
-
-            updateUI();
-        }
-    });
-
-    // Toggle Chart
-    document.getElementById("toggleChartBtn").addEventListener("click", function () {
-        let chartDiv = document.getElementById("chartContainer");
-
-        if (chartDiv.style.display === "none") {
-            chartDiv.style.display = "block";
-            this.textContent = "Hide Expense Breakdown";
-        } else {
-            chartDiv.style.display = "none";
-            this.textContent = "Expense Breakdown";
-        }
-
-        updateUI();
-    });
+    document.getElementById("logoutBtn").addEventListener("click", logoutUser);
 
     // AUTO LOGIN
     if (currentUser) {
         let users = getUsers();
-        let loggedInUser = users.find(user => user.email === currentUser);
+        let user = users.find(u => u.email === currentUser);
 
         loadBudgetData();
         showApp();
 
-        if (loggedInUser) {
-            document.getElementById("displayUsername").textContent = `${loggedInUser.firstName} ${loggedInUser.lastName}`;
-        } else {
-            document.getElementById("displayUsername").textContent = currentUser;
+        if (user) {
+            document.getElementById("displayUsername").textContent =
+                `${user.firstName} ${user.lastName}`;
         }
 
         updateUI();
@@ -486,12 +289,4 @@ document.addEventListener("DOMContentLoaded", function () {
         showAuth();
     }
 
-    // OPTIONAL: SERVICE WORKER FOR PWA
-    if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-            navigator.serviceWorker.register("./service-worker.js")
-                .then(() => console.log("Service Worker Registered"))
-                .catch(err => console.log("Service Worker Error:", err));
-        });
-    }
 });
