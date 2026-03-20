@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Tracker System</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+
+<!-- AUTH SECTION -->
+<div class="auth-wrapper" id="authSection">
+    <div class="auth-card">
+        <h2 class="text-center mb-4">Budget Tracker</h2>
+
+        <!-- LOGIN -->
+        <div id="loginBox">
+            <h4 class="text-center mb-3">Login</h4>
+            <form id="loginForm">
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-control" id="loginEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-control" id="loginPassword" required>
+                </div>
+
+                <div class="form-check mb-2">
+                    <input type="checkbox" id="showLoginPassword">
+                    <label for="showLoginPassword">Show Password</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </form>
+
+            <p class="text-center mt-3">
+                Don't have an account?
+                <a href="#" id="showRegister">Register here</a>
+            </p>
+        </div>
+
+        <!-- REGISTER -->
+        <div id="registerBox" style="display:none;">
+            <h4 class="text-center mb-3">Register</h4>
+            <form id="registerForm">
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" class="form-control" id="registerFirstName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" class="form-control" id="registerLastName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Number</label>
+                    <input type="tel" class="form-control" id="registerNumber" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-control" id="registerEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-control" id="registerPassword" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" required>
+                </div>
+
+                <div class="form-check mb-2">
+                    <input type="checkbox" id="showRegisterPassword">
+                    <label for="showRegisterPassword">Show Password</label>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-block">Register</button>
+            </form>
+
+            <p class="text-center mt-3">
+                Already have an account?
+                <a href="#" id="showLogin">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN APP (NOW PROPERLY HIDDEN) -->
+<div id="appSection" style="display:none;">
+
+<div class="top-bar container-fluid mb-3">
+    <div class="top-bar-inner">
+        <div class="profile-box">
+            <div class="profile-icon">👤</div>
+            <div class="profile-name" id="displayUsername">User</div>
+        </div>
+
+        <button class="btn btn-danger btn-sm logout-btn-custom" id="logoutBtn">Logout</button>
+    </div>
+</div>
+
+<h1 class="main-title">Budget Tracker System</h1>
+
+<div class="budget-container row">
+
+<div class="add-container col-12 col-md-4">
+
+<div class="add-budget-container">
+<h4>Add Budget</h4>
+<form id="budgetForm">
+<input class="form-control mb-2" type="number" id="budget" placeholder="Enter Budget" required>
+<button class="btn btn-primary form-control">Add Budget</button>
+</form>
+</div>
+
+<div class="add-expense-container mt-4">
+<h4>Add Expense</h4>
+<form id="expenseForm">
+
+<input class="form-control mb-2" type="text" id="expense" placeholder="Expense Title" required>
+<input class="form-control mb-2" type="number" id="amount" placeholder="Amount" required>
+
+<select class="form-control mb-2" id="category">
+<option>Food</option>
+<option>Bills</option>
+<option>Transport</option>
+<option>Entertainment</option>
+<option>Others</option>
+</select>
+
+<button class="btn btn-primary form-control">Add Expense</button>
+</form>
+</div>
+
+<button class="btn btn-danger form-control mt-2" onclick="resetAll()">Reset All</button>
+
+</div>
+
+<div class="display-container col-12 col-md-8">
+
+<div class="heading row text-center">
+<div class="alert alert-primary col">Total Budget: <span id="totalBudget">₱0.00</span></div>
+<div class="alert alert-primary col">Total Expenses: <span id="totalExpenses">₱0.00</span></div>
+<div class="alert alert-primary col">Budget Left: <span id="budgetLeft">₱0.00</span></div>
+</div>
+
+<hr>
+
+<h5>Expense History</h5>
+
+<table class="table table-bordered">
+<thead>
+<tr>
+<th>Expense</th>
+<th>Amount</th>
+<th>Category</th>
+<th>Date</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="expenseTableBody">
+<tr><td colspan="5" class="text-center">No expenses yet.</td></tr>
+</tbody>
+</table>
+
+<button class="btn btn-info mb-3" id="toggleChartBtn">Expense Breakdown</button>
+
+<div id="chartContainer" style="display:none;">
+<canvas id="expenseChart"></canvas>
+</div>
+
+</div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="./script.js"></script>
+
+</body>
+</html>
