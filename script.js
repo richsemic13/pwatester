@@ -84,6 +84,8 @@ function updateUI() {
                 <td>${expense.date}</td>
                 <td class="action-cell text-center">
                     <button class="btn btn-sm btn-warning edit-btn mb-1">Edit</button>
+                    <button class="btn btn-sm btn-success save-btn mb-1" style="display:none;">Save</button>
+                    <button class="btn btn-sm btn-secondary cancel-btn mb-1" style="display:none;">Cancel</button>
                     <button class="btn btn-sm btn-danger delete-btn mb-1">Remove</button>
                 </td>
             `;
@@ -171,6 +173,174 @@ document.addEventListener("DOMContentLoaded", function () {
     const loginPassword = document.getElementById("loginPassword");
     const registerPassword = document.getElementById("registerPassword");
     const confirmPassword = document.getElementById("confirmPassword");
+
+    // ==========================
+// ADD BUDGET
+// ==========================
+document.getElementById("budgetForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    let amount = parseFloat(document.getElementById("budget").value);
+
+    if (isNaN(amount) || amount <= 0) {
+        alert("Enter valid budget.");
+        return;
+    }
+
+    budgetData.totalBudget += amount;
+    budgetData.budgetLeft += amount;
+
+    updateLocalStorage();
+    updateUI();
+
+    this.reset();
+});
+
+document.getElementById("toggleChartBtn").addEventListener("click", function () {
+    let chartContainer = document.getElementById("chartContainer");
+
+    if (chartContainer.style.display === "none") {
+        chartContainer.style.display = "block";
+    } else {
+        chartContainer.style.display = "none";
+    }
+
+    updateChart();
+});
+
+// ==========================
+// ADD EXPENSE
+// ==========================
+document.getElementById("expenseForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    let title = document.getElementById("expense").value.trim();
+    let amount = parseFloat(document.getElementById("amount").value);
+    let category = document.getElementById("category").value;
+
+    if (!title || isNaN(amount) || amount <= 0) {
+        alert("Enter valid expense.");
+        return;
+    }
+
+    if (amount > budgetData.budgetLeft) {
+        alert("Not enough budget.");
+        return;
+    }
+
+    let expense = {
+        id: Date.now(),
+        title: title,
+        amount: amount,
+        category: category,
+        date: new Date().toLocaleDateString()
+    };
+
+    budgetData.expenses.push(expense);
+    budgetData.totalExpenses += amount;
+    budgetData.budgetLeft -= amount;
+
+    updateLocalStorage();
+    updateUI();
+
+    this.reset();
+});
+
+// ==========================
+// DELETE + EDIT (EVENT DELEGATION)
+// ==========================
+document.getElementById("expenseTableBody").addEventListener("click", function (e) {
+
+    let row = e.target.closest("tr");
+    if (!row) return;
+
+    let id = Number(row.getAttribute("data-id"));
+    let expenseIndex = budgetData.expenses.findIndex(exp => exp.id === id);
+    if (expenseIndex === -1) return;
+
+    let exp = budgetData.expenses[expenseIndex];
+
+    // DELETE
+    if (e.target.classList.contains("delete-btn")) {
+
+        if (!confirm("Delete this expense?")) return;
+
+        budgetData.totalExpenses -= exp.amount;
+        budgetData.budgetLeft += exp.amount;
+
+        budgetData.expenses.splice(expenseIndex, 1);
+
+        updateLocalStorage();
+        updateUI();
+    }
+
+    // EDIT MODE (INLINE)
+    if (e.target.classList.contains("edit-btn")) {
+
+        row.querySelector(".title-cell").innerHTML =
+            `<input type="text" class="form-control form-control-sm edit-title" value="${exp.title}">`;
+
+        row.querySelector(".amount-cell").innerHTML =
+            `<input type="number" class="form-control form-control-sm edit-amount" value="${exp.amount}">`;
+
+        row.querySelector(".category-cell").innerHTML =
+            `<select class="form-control form-control-sm edit-category">
+                <option ${exp.category === "Food" ? "selected" : ""}>Food</option>
+                <option ${exp.category === "Bills" ? "selected" : ""}>Bills</option>
+                <option ${exp.category === "Transport" ? "selected" : ""}>Transport</option>
+                <option ${exp.category === "Entertainment" ? "selected" : ""}>Entertainment</option>
+                <option ${exp.category === "Others" ? "selected" : ""}>Others</option>
+            </select>`;
+
+        row.querySelector(".edit-btn").style.display = "none";
+        row.querySelector(".delete-btn").style.display = "none";
+        row.querySelector(".save-btn").style.display = "inline-block";
+        row.querySelector(".cancel-btn").style.display = "inline-block";
+    }
+
+    // SAVE
+    if (e.target.classList.contains("save-btn")) {
+
+        let newTitle = row.querySelector(".edit-title").value.trim();
+        let newAmount = parseFloat(row.querySelector(".edit-amount").value);
+        let newCategory = row.querySelector(".edit-category").value;
+
+        if (!newTitle || isNaN(newAmount) || newAmount <= 0) {
+            alert("Invalid input.");
+            return;
+        }
+
+        // remove old values
+        budgetData.totalExpenses -= exp.amount;
+        budgetData.budgetLeft += exp.amount;
+
+        if (newAmount > budgetData.budgetLeft) {
+            alert("Not enough budget.");
+
+            // revert
+            budgetData.totalExpenses += exp.amount;
+            budgetData.budgetLeft -= exp.amount;
+            return;
+        }
+
+        // update values
+        exp.title = newTitle;
+        exp.amount = newAmount;
+        exp.category = newCategory;
+
+        budgetData.totalExpenses += newAmount;
+        budgetData.budgetLeft -= newAmount;
+
+        updateLocalStorage();
+        updateUI();
+    }
+
+    // CANCEL
+    if (e.target.classList.contains("cancel-btn")) {
+        updateUI();
+    }
+
+});
 
     // SWITCH TO REGISTER
     document.getElementById("showRegister").addEventListener("click", function (e) {
